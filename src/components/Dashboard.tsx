@@ -13,10 +13,12 @@ import {
   Thermometer,
   Eye
 } from 'lucide-react';
-import ThreatMap from './ThreatMap';
+import GujaratThreatMap from './GujaratThreatMap';
 import AlertPanel from './AlertPanel';
-import DataMetrics from './DataMetrics';
-import ActionRecommendations from './ActionRecommendations';
+import EnhancedDataMetrics from './EnhancedDataMetrics';
+import VirtualDecisionAssistant from './VirtualDecisionAssistant';
+import GraphsPanel from './GraphsPanel';
+import OperationalLogger from './OperationalLogger';
 
 export type ThreatLevel = 'safe' | 'watch' | 'warning' | 'critical';
 
@@ -35,32 +37,36 @@ const Dashboard = () => {
   const [activeThreats, setActiveThreats] = useState<ThreatData[]>([
     {
       id: '1',
-      location: 'Miami Beach',
+      location: 'Veraval Port',
       level: 'critical',
-      type: 'Storm Surge',
+      type: 'Cyclone Alert',
       timestamp: new Date(),
       severity: 8.5,
-      coordinates: [-80.1373, 25.7907]
+      coordinates: [70.3667, 20.9]
     },
     {
       id: '2',
-      location: 'Key West',
+      location: 'Porbandar Coast',
       level: 'warning',
-      type: 'High Winds',
+      type: 'High Tidal Surge',
       timestamp: new Date(),
       severity: 6.2,
-      coordinates: [-81.7781, 24.5557]
+      coordinates: [69.6293, 21.6417]
     },
     {
       id: '3',
-      location: 'Fort Lauderdale',
+      location: 'Dwarka Shore',
       level: 'watch',
-      type: 'Coastal Flooding',
+      type: 'Strong Winds',
       timestamp: new Date(),
       severity: 4.1,
-      coordinates: [-80.1373, 26.1224]
+      coordinates: [68.9685, 22.2394]
     }
   ]);
+
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [showGraphs, setShowGraphs] = useState(false);
+  const [executedActions, setExecutedActions] = useState<string[]>([]);
 
   const getThreatLevelColor = (level: ThreatLevel) => {
     switch (level) {
@@ -166,11 +172,18 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Environmental Data */}
-          <DataMetrics />
+          {/* Enhanced Environmental Data */}
+          <EnhancedDataMetrics 
+            onMetricClick={setSelectedLocation} 
+            onGraphsView={() => setShowGraphs(true)} 
+          />
 
-          {/* Action Recommendations */}
-          <ActionRecommendations currentLevel={currentThreatLevel} threats={activeThreats} />
+          {/* Virtual Decision Assistant */}
+          <VirtualDecisionAssistant 
+            currentLevel={currentThreatLevel} 
+            threats={activeThreats}
+            onActionExecute={(actionId) => setExecutedActions(prev => [...prev, actionId])}
+          />
         </div>
 
         {/* Center Column - Map */}
@@ -183,16 +196,34 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <ThreatMap threats={activeThreats} />
+              <GujaratThreatMap 
+                threats={activeThreats} 
+                onLocationClick={setSelectedLocation}
+              />
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column - Active Alerts */}
-        <div className="lg:col-span-1">
+        {/* Right Column - Active Alerts & Logs */}
+        <div className="lg:col-span-1 space-y-6">
           <AlertPanel threats={activeThreats} onUpdateThreat={setActiveThreats} />
+          <OperationalLogger executedActions={executedActions} />
         </div>
       </div>
+
+      {/* Graphs Panel Modal */}
+      {showGraphs && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-auto">
+            <div className="flex justify-end mb-4">
+              <Button variant="outline" onClick={() => setShowGraphs(false)}>
+                Close Graphs
+              </Button>
+            </div>
+            <GraphsPanel />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
